@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extractor de Productos MercadoLibre</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FFE53E 0%, #FF2525 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            padding: 40px;
+            background: white;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .product-list {
+            padding: 20px;
+        }
+
+        .product-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .product-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .product-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .product-details {
+            font-size: 0.9em;
+            color: #666;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            margin-top: 20px;
+        }
+
+        .export-btn:hover {
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .form-section,
+            .results-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ Extractor de Productos MercadoLibre</h1>
+            <p>Organiza tu inventario por categorías de forma automática</p>
+            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; margin-top: 15px;">
+                <strong>🔗 CONECTADO AL SERVIDOR</strong> - Usando API real de MercadoLibre
+            </div>
+        </div>
+
+        <div class="form-section">
+            <form id="extractorForm">
+                <div class="form-group">
+                    <label for="accessToken">🔑 Token de Acceso</label>
+                    <input type="text" id="accessToken" placeholder="APP_USR-xxxxxxxx..." required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userId">👤 ID de Usuario</label>
+                        <input type="text" id="userId" placeholder="1720493754" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="limit">📊 Límite por Consulta</label>
+                        <select id="limit">
+                            <option value="20">20 productos</option>
+                            <option value="50" selected>50 productos</option>
+                            <option value="100">100 productos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="status">📦 Estado de Productos</label>
+                        <select id="status">
+                            <option value="active">Activos</option>
+                            <option value="paused">Pausados</option>
+                            <option value="closed">Cerrados</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sortBy">🔤 Ordenar Por</label>
+                        <select id="sortBy">
+                            <option value="title">Título</option>
+                            <option value="price">Precio</option>
+                            <option value="available_quantity">Stock</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">
+                    🚀 Extraer Productos
+                </button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <h3>Extrayendo productos...</h3>
+            <p>Por favor espera mientras procesamos tu inventario</p>
+        </div>
+
+        <div class="results-section" id="results">
+            <button class="btn export-btn" onclick="exportData()">
+                💾 Exportar a Archivo
+            </button>
+            <div class="stats" id="stats"></div>
+            <div id="productData"></div>
+        </div>
+    </div>
+
+    <script>
+        let extractedData = null;
+        let categoryNames = {};
+
+        document.getElementById('extractorForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = {
+                accessToken: document.getElementById('accessToken').value,
+                userId: document.getElementById('userId').value,
+                limit: parseInt(document.getElementById('limit').value),
+                status: document.getElementById('status').value,
+                sortBy: document.getElementById('sortBy').value
+            };
+
+            await extractProducts(formData);
+        });
+
+        async function extractProducts(config) {
+            // Mostrar loading
+            document.querySelector('.form-section').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                // Llamar al servidor backend
+                const response = await fetch('http://localhost:3000/api/extract-products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error en la solicitud');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    extractedData = data.products;
+                    categoryNames = data.categoryNames;
+                    displayResults(data.products, data.categoryGroups, data.stats, config);
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al extraer productos: ' + error.message);
+                document.querySelector('.form-section').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function getAllProducts(config) {
+            // MODO DEMO - Simula la respuesta de la API
+            await sleep(1000);
+
+            // Datos de prueba simulando productos reales
+            const sampleProducts = [
+                'MLA123456789', 'MLA987654321', 'MLA456789123', 'MLA789123456',
+                'MLA321654987', 'MLA654987321', 'MLA147258369', 'MLA258369147',
+                'MLA369147258', 'MLA159357468', 'MLA357468159', 'MLA468159357'
+            ];
+
+            return sampleProducts;
+        }
+
+        async function getProductDetails(productIds, config) {
+            await sleep(1500);
+
+            // Categorías de ejemplo
+            const sampleCategories = {
+                'MLA5726': 'Celulares y Smartphones',
+                'MLA1648': 'Computación',
+                'MLA1039': 'Cámaras y Accesorios',
+                'MLA1574': 'Hogar y Jardín',
+                'MLA1276': 'Deportes y Fitness'
+            };
+
+            const categoryIds = Object.keys(sampleCategories);
+            categoryNames = sampleCategories;
+
+            // Generar productos de ejemplo
+            const products = productIds.map((id, index) => {
+                const categoryId = categoryIds[index % categoryIds.length];
+                const productTypes = [
+                    'Smartphone Samsung Galaxy', 'iPhone Apple', 'Notebook Lenovo',
+                    'Cámara Canon', 'Aspiradora Inalámbrica', 'Bicicleta Mountain Bike',
+                    'Smart TV LG', 'Auriculares Bluetooth', 'Tablet iPad',
+                    'Consola PlayStation', 'Silla Gaming', 'Monitor 4K'
+                ];
+
+                return {
+                    id: id,
+                    title: `${productTypes[index % productTypes.length]} ${index + 1}`,
+                    price: Math.floor(Math.random() * 500000) + 50000,
+                    available_quantity: Math.floor(Math.random() * 100) + 1,
+                    category_id: categoryId,
+                    seller_custom_field: `SKU-${1000 + index}`
+                };
+            });
+
+            extractedData = products;
+        }
+
+        function displayResults(products, categoryGroups, stats, config) {
+            // Mostrar estadísticas
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.totalProducts}</div>
+                    <div>Total Productos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.totalCategories}</div>
+                    <div>Categorías</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.totalValue.toLocaleString()}</div>
+                    <div>Valor Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.totalStock}</div>
+                    <div>Stock Total</div>
+                </div>
+            `;
+
+            // Mostrar productos por categoría
+            let productsHtml = '';
+            Object.keys(categoryGroups).forEach(catId => {
+                const catName = categoryNames[catId];
+                const categoryProducts = categoryGroups[catId];
+
+                productsHtml += `
+                    <div class="category-section">
+                        <div class="category-header">
+                            📂 ${catName} (${categoryProducts.length} productos)
+                        </div>
+                        <div class="product-list">
+                `;
+
+                categoryProducts.forEach(product => {
+                    const sku = product.seller_custom_field || 'N/A';
+                    productsHtml += `
+                        <div class="product-item">
+                            <div class="product-title">${product.title}</div>
+                            <div class="product-details">
+                                <span><strong>ID:</strong> ${product.id}</span>
+                                <span><strong>Precio:</strong> ${product.price.toLocaleString()}</span>
+                                <span><strong>Stock:</strong> ${product.available_quantity}</span>
+                                <span><strong>SKU:</strong> ${sku}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                productsHtml += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('stats').innerHTML = statsHtml;
+            document.getElementById('productData').innerHTML = productsHtml;
+
+            // Mostrar resultados
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function exportData() {
+            if (!extractedData) return;
+
+            let output = "INVENTARIO DE PRODUCTOS MERCADOLIBRE\n";
+            output += "====================================\n\n";
+
+            // Agrupar por categoría
+            const categoryGroups = {};
+            extractedData.forEach(product => {
+                const catId = product.category_id;
+                if (!categoryGroups[catId]) {
+                    categoryGroups[catId] = [];
+                }
+                categoryGroups[catId].push(product);
+            });
+
+            Object.keys(categoryGroups).forEach(catId => {
+                const catName = categoryNames[catId];
+                output += `\n==============================\n`;
+                output += `📂 Categoría: ${catName} (${catId})\n`;
+                output += `==============================\n`;
+
+                categoryGroups[catId].forEach(product => {
+                    const sku = product.seller_custom_field || 'N/A';
+                    output += `ID: ${product.id} | Título: ${product.title} | Precio: $${product.price} | Stock: ${product.available_quantity} | SKU: ${sku}\n`;
+                });
+            });
+
+            // Crear y descargar archivo
+            const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `productos_por_categoria_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+
+</html>
